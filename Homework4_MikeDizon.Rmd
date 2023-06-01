@@ -1,8 +1,12 @@
 ---
-title: "Homework 4: Machine Learning"
+title: 'Homework 4: Machine Learning'
 author: "MIKE DIZON"
 date: "`r Sys.Date()`"
 output:
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
   html_document:
     theme: flatly
     highlight: zenburn
@@ -10,8 +14,6 @@ output:
     toc: yes
     toc_float: yes
     code_folding: show
-  pdf_document:
-    toc: yes
 ---
 
 ```{r}
@@ -35,17 +37,6 @@ library(vip)
 
 # The Bechdel Test
 
-https://fivethirtyeight.com/features/the-dollar-and-cents-case-against-hollywoods-exclusion-of-women/
-
-The [Bechdel test](https://bechdeltest.com) is a way to assess how women are depicted in Hollywood movies.  In order for a movie to pass the test:
-
-1. It has to have at least two [named] women in it
-2. Who talk to each other
-3. About something besides a man
-
-There is a nice article and analysis you can find here https://fivethirtyeight.com/features/the-dollar-and-cents-case-against-hollywoods-exclusion-of-women/
-We have a sample of 1394 movies and we want to fit a model to predict whether a film passes the test or not.
-
 ```{r read_data}
 
 bechdel <- read_csv(here::here("data", "bechdel.csv")) %>% 
@@ -57,11 +48,16 @@ How many films fail/pass the test, both as a number and as a %?
 
 ```{r}
 
-summary_data <- bechdel %>% 
+#Compute for the number and % of films that fail/pass the test and store into a variable
+summary_data <- bechdel %>%
+  
+#Count the number of films that pass or fail the test
   summarize(
     pass_count = sum(test == "Pass"),
     fail_count = sum(test == "Fail"),
   ) %>% 
+  
+#Add a new column to determine the proportion
   mutate(
     pass_percentage = pass_count / nrow(bechdel),
     fail_percentage = fail_count / nrow(bechdel)
@@ -106,21 +102,31 @@ bechdel_test <- testing(data_split)
 Check the counts and % (proportions) of the `test` variable in each set.
 ```{r}
 
+#Calculate the number of films that pass/fail using the training data and store into a variable
 train_summary <- bechdel_train %>% 
+  
+#Count the number of films that pass/fail the test
   summarize(
     pass_count = sum(test == "Pass"),
     fail_count = sum(test == "Fail")
   ) %>% 
+  
+#Add a new column to compute for the proportion
   mutate(
     pass_percentage = pass_count / nrow(bechdel_train),
     fail_percentage = fail_count / nrow(bechdel_train)
     )
 
+#Calculate the number of films that pass/fail using the testing data and store into a variable
 test_summary <- bechdel_test %>% 
+  
+#Count the number of films that pass/fail the test
   summarize(
     pass_count = sum(test == "Pass"),
     fail_count = sum(test == "Fail")
   ) %>% 
+  
+#Add a new column to compute for the proportion
   mutate(
     pass_percentage = pass_count / nrow(bechdel_test),
     fail_percentage = fail_count / nrow(bechdel_test)
@@ -165,7 +171,7 @@ bechdel %>%
   theme_bw()
 ```
 
-**Answer:** From the ggpairs output, we can observe that the distribution of budget_2013, domgross_2013, and int_gross2013 are skewed to the right, which means that there are more instances wherein these amounts are less than the average values. This probably means that a film typically uses less budget for the production of the film, but also tends to take in less international and domestic gross revenues, as also confirmed by the boxplots. However, both the distributions and boxplots also show instance where a film is highly profitable and well-funded in terms of budget. On the other hand, the imdb rating is skewed to the left and the metascore is more or less normally distributed, as also shown by the boxplots. From the pairwise correlations and scatterplots, we can observe that there is a strong correlation between int_gross2013 and dom_gross2013 as well as metascore and imdb_rating.  
+**Answer:** From the ggpairs output, we can observe that the distribution of budget_2013, domgross_2013, and int_gross2013 are skewed to the right, which means that there are more instances wherein these amounts are less than the average values. This probably means that a film typically uses less budget for the production of the film, but also tends to take in less international and domestic gross revenues, as also confirmed by the boxplots. However, both the distributions and boxplots also show instances where a film is highly profitable and well-funded in terms of budget. On the other hand, the imdb rating is skewed to the left and the metascore is more or less normally distributed, as also shown by the boxplots. From the pairwise correlations and scatterplots, we can observe that there is a strong correlation between int_gross2013 and dom_gross2013 as well as metascore and imdb_rating.  
 
 ## Categorical variables
 
@@ -183,7 +189,7 @@ bechdel %>%
   mutate(prop = n/sum(n))
 ```
 
-**Answer:** With the exception of the one film under the musical genre, the table shows that for all genres, there is a higher proportion of films that fail the Bechdel test than those that pass. The same conclusion can also be observed when the films are group by rating - there is a higher proportion of films that fail the Bechdel test than those that pass.
+**Answer:** With the exception of the one film under the musical genre, the table shows that for all genres, there is a higher proportion of films that fail the Bechdel test than those that pass. The same conclusion can also be observed when the films are grouped by rating - there is a higher proportion of films that fail the Bechdel test than those that pass.
 
 # Train first models. `test ~ metascore + imdb_rating`
 
@@ -421,6 +427,8 @@ What if there were no films with `rated` NC-17 in the training data?
 -  Will the model have a coefficient for `rated` NC-17?
 -  What will happen if the test data includes a film with `rated` NC-17?
 
+**Answer:** The model will not have a coefficient for `rated` NC-17 as the model did not encounter any examples of films with that rating in the training data. If the test data includes films with that rating, the model will still make predictions using other available features although it may not be as accurate as other films with other ratings.
+
 ## `step_novel()`
 
 Adds a catch-all level to a factor for any new values not encountered in model training, which lets R intelligently predict new levels in the test set.
@@ -571,9 +579,16 @@ knn_wflow <-
 HEADS UP
 
 1. How many models have you specified?
+
+**Answer:** There were five models that were specified namely Logistic Regression, Decision Tree, Random Forest, Boosted Tree (XGBoost), and K-Nearest Neighbour (k-NN).
+
 2. What's the difference between a model specification and a workflow?
+
+**Answer:** A model specification provides the definition of details and configurations of a specific machine learning algorithm, particularly the type of model to be used (such as the ones mentioned above) and sets parameters specific to the model. On the other hand, a workflow is more comprehensive as it encompasses the entire modelling process, such as data preprocessing, model specification, model fitting, and model evaluation.
+
 3. Do you need to add a formula (e.g., `test ~ .`)  if you have a recipe?
 
+It is not necessary to add a formula if you have a recipe as it already defines the data preprocessing steps, including variable selection, transformation, and encoding.
 
 # Model Comparison
 
@@ -792,24 +807,8 @@ last_fit_xgb %>%
 
 **Answer:** The random forest model provided the best classification with a mean_roc_auc of 0.66. The logistic regression model provided the worst classification with a mean_roc_auc of 0.47.
 
-# Deliverables
-
-There is a lot of explanatory text, comments, etc. You do not need these, so delete them and produce a stand-alone document that you could share with someone. Knit the edited and completed R Markdown (Rmd) file as a Word or HTML document (use the "Knit" button at the top of the script editor window) and upload it to Canvas. You must be commiting and pushing your changes to your own Github repo as you go along.
-
 # Details
 
--   Who did you collaborate with: TYPE NAMES HERE
--   Approximately how much time did you spend on this problem set: ANSWER HERE
--   What, if anything, gave you the most trouble: ANSWER HERE
-
-**Please seek out help when you need it,** and remember the [15-minute rule](https://dsb2023.netlify.app/syllabus/#the-15-minute-rule){target="_blank"}. You know enough R (and have enough examples of code from class and your readings) to be able to do this. If you get stuck, ask for help from others, post a question on Slack-- and remember that I am here to help too!
-
-> As a true test to yourself, do you understand the code you submitted and are you able to explain it to someone else?
-
-# Rubric
-
-13/13: Problem set is 100% completed. Every question was attempted and answered, and most answers are correct. Code is well-documented (both self-documented and with additional comments as necessary). Used tidyverse, instead of base R. Graphs and tables are properly labelled. Analysis is clear and easy to follow, either because graphs are labeled clearly or you've written additional text to describe how you interpret the output. Multiple Github commits. Work is exceptional. I will not assign these often.
-
-8/13: Problem set is 60--80% complete and most answers are correct. This is the expected level of performance. Solid effort. Hits all the elements. No clear mistakes. Easy to follow (both the code and the output). A few Github commits.
-
-5/13: Problem set is less than 60% complete and/or most answers are incorrect. This indicates that you need to improve next time. I will hopefully not assign these often. Displays minimal effort. Doesn't complete all components. Code is poorly written and not documented. Uses the same type of plot for each graph, or doesn't use plots appropriate for the variables being analyzed. No Github commits.
+-   Who did you collaborate with: N/A
+-   Approximately how much time did you spend on this problem set: Two hours
+-   What, if anything, gave you the most trouble: N/A
